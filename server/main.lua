@@ -1,6 +1,7 @@
 
 local SelectedHorseId = {}
 local Horses
+local QRCore = exports['qr-core']:GetCoreObject()
 
 CreateThread(function()
 	if GetCurrentResourceName() ~= "qr-stable" then
@@ -15,7 +16,7 @@ end)
 RegisterNetEvent("qr-stable:UpdateHorseComponents", function(components, idhorse, MyHorse_entity)
 	local src = source
 	local encodedComponents = json.encode(components)
-	local Player = exports['qr-core']:GetPlayer(src)
+	local Player = QRCore.Functions.GetPlayer(src)
 	local Playercid = Player.PlayerData.citizenid
 	local id = idhorse
 	MySQL.Async.execute("UPDATE horses SET `components`=@components WHERE `cid`=@cid AND `id`=@id", {components = encodedComponents, cid = Playercid, id = id}, function(done)
@@ -25,7 +26,7 @@ end)
 
 RegisterNetEvent("qr-stable:CheckSelectedHorse", function()
 	local src = source
-	local Player = exports['qr-core']:GetPlayer(src)
+	local Player = QRCore.Functions.GetPlayer(src)
 	local Playercid = Player.PlayerData.citizenid
 
 	MySQL.Async.fetchAll('SELECT * FROM horses WHERE `cid`=@cid;', {cid = Playercid}, function(horses)
@@ -43,7 +44,7 @@ RegisterNetEvent("qr-stable:AskForMyHorses", function()
 	local src = source
 	local horseId = nil
 	local components = nil
-	local Player = exports['qr-core']:GetPlayer(src)
+	local Player = QRCore.Functions.GetPlayer(src)
 	local Playercid = Player.PlayerData.citizenid
 	MySQL.Async.fetchAll('SELECT * FROM horses WHERE `cid`=@cid;', {cid = Playercid}, function(horses)
 		if horses[1]then
@@ -63,7 +64,7 @@ end)
 
 RegisterNetEvent("qr-stable:BuyHorse", function(data, name)
 	local src = source
-	local Player = exports['qr-core']:GetPlayer(src)
+	local Player = QRCore.Functions.GetPlayer(src)
 	local Playercid = Player.PlayerData.citizenid
 
 	MySQL.Async.fetchAll('SELECT * FROM horses WHERE `cid`=@cid;', {cid = Playercid}, function(horses)
@@ -102,7 +103,7 @@ end)
 
 RegisterNetEvent("qr-stable:SelectHorseWithId", function(id)
 	local src = source
-	local Player = exports['qr-core']:GetPlayer(src)
+	local Player = QRCore.Functions.GetPlayer(src)
 	local Playercid = Player.PlayerData.citizenid
 	MySQL.Async.fetchAll('SELECT * FROM horses WHERE `cid`=@cid;', {cid = Playercid}, function(horse)
 		for i = 1, #horse do
@@ -124,7 +125,7 @@ end)
 RegisterNetEvent("qr-stable:SellHorseWithId", function(id)
 	local modelHorse = nil
 	local src = source
-	local Player = exports['qr-core']:GetPlayer(src)
+	local Player = QRCore.Functions.GetPlayer(src)
 	local Playercid = Player.PlayerData.citizenid
 	MySQL.Async.fetchAll('SELECT * FROM horses WHERE `cid`=@cid;', {cid = Playercid}, function(horses)
 
