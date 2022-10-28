@@ -1,5 +1,4 @@
 # qr-stable
-# qr-plant script!
 
 ## 1. Requirements
 
