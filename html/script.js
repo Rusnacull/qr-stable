@@ -59,14 +59,14 @@ window.addEventListener('message', function(event) {
                         $(`#page_shop .scroll-container .collapsible #${index} .collapsible-body #${_}`).hover(function() {                       
                             $( this ).click(function() {                        
                              
-
+            
                                 $(Modelhorse).addClass("selected");
                                 $('.selected').removeClass("selected"); 
-
+            
                                 Modelhorse = $(this).attr('id');                       
                                 $(this).addClass('selected');
-
-                                $.post('https://qr-stable/loadHorse', JSON.stringify({ horseModel: $(this).attr('id') }));
+            
+                                $.post('http://qr-stable/loadHorse', JSON.stringify({ horseModel: $(this).attr('id') }));
                             });                       
                             
                         }, function() {});
