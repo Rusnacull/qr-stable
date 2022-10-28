@@ -2,13 +2,8 @@ fx_version 'cerulean'
 game 'rdr3'
 rdr3_warning 'I acknowledge that this is a prerelease build of RedM, and I am aware my resources *will* become incompatible once RedM ships.'
 
-author 'Sporny'
-description 'qr-Stable'
-version '1.0.0'
-
-dependencies {
-	'qr-core'
-}
+-- rexshack version
+description 'qr-stable' 
 
 shared_scripts {
 	'@qr-core/shared/locale.lua',
@@ -23,10 +18,18 @@ server_scripts {
     '@oxmysql/lib/MySQL.lua',
     'server/main.lua'
 }
+
 ui_page 'html/index.html'
+
 files {
 	'html/*',
 	'html/css/*',
 	'html/fonts/*',
 	'html/img/*'
 }
+
+dependencies {
+	'qr-core'
+}
+
+lua54 'yes'

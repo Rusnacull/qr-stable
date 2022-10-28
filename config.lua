@@ -1,9 +1,12 @@
 Config = {}
 
+Config.HorseInvWeight = 240000
+Config.HorseInvSlots = 12
+
 Config.Stables = {
 	Valentine = {
 		Pos = vector3(-367.73, 787.72, 116.26),
-		Name = 'Stable Valentine',
+		Name = 'Stable',
         	Heading = -30.65,
 		SpawnPoint = {
 			Pos = vector3(-372.43, 791.79, 116.13),
@@ -13,7 +16,7 @@ Config.Stables = {
     },
 	Blackwater = {
 		Pos = vector3(-864.84, -1365.96, 43.54),
-		Name = 'Stable Blackwater',
+		Name = 'Stable',
         	Heading = -30.65,
 		SpawnPoint = {
 			Pos = vector3(-867.74, -1361.69, 43.66),
@@ -23,7 +26,7 @@ Config.Stables = {
     },
 	SaintDenis = {
 		Pos = vector3(2503.13, -1449.08, 46.3),
-		Name = 'Stable Saint Denis',
+		Name = 'Stable',
         	Heading = -30.65,
 		SpawnPoint = {
 			Pos = vector3(2508.41, -1446.89, 46.4),
@@ -33,7 +36,7 @@ Config.Stables = {
 	},
 	Annesburg = {
 		Pos = vector3(2972.35, 1425.35, 44.67),
-		Name = 'Stable Annesburg',
+		Name = 'Stable',
         	Heading = -30.65,
 		SpawnPoint = {
 			Pos = vector3(2970.43, 1429.35, 44.7),
@@ -43,7 +46,7 @@ Config.Stables = {
 	},
 	Rhodes = {
 		Pos = vector3(1321.46, -1358.66, 78.39),
-		Name = 'Stable Rhodes',
+		Name = 'Stable',
         	Heading = -30.65,
 		SpawnPoint = {
 			Pos = vector3(1318.74, -1354.64, 78.18),
@@ -53,7 +56,7 @@ Config.Stables = {
 	},
 	Tumbleweed = {
 		Pos = vector3(-5519.43, -3043.45, -2.39),
-		Name = 'Stable Tumbleweed',
+		Name = 'Stable',
         	Heading = 0.0,
 		SpawnPoint = {
 			Pos = vector3(-5522.14, -3039.16, -2.29),

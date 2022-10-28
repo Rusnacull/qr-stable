@@ -1,7 +1,6 @@
-
+local QRCore = exports['qr-core']:GetCoreObject()
 local SelectedHorseId = {}
 local Horses
-local QRCore = exports['qr-core']:GetCoreObject()
 
 CreateThread(function()
 	if GetCurrentResourceName() ~= "qr-stable" then
@@ -19,7 +18,7 @@ RegisterNetEvent("qr-stable:UpdateHorseComponents", function(components, idhorse
 	local Player = QRCore.Functions.GetPlayer(src)
 	local Playercid = Player.PlayerData.citizenid
 	local id = idhorse
-	MySQL.Async.execute("UPDATE horses SET `components`=@components WHERE `cid`=@cid AND `id`=@id", {components = encodedComponents, cid = Playercid, id = id}, function(done)
+	MySQL.Async.execute("UPDATE horses SET `components`=@components WHERE `citizenid`=@citizenid AND `id`=@id", {components = encodedComponents, citizenid = Playercid, id = id}, function(done)
 		TriggerClientEvent("qr-stable:client:UpdadeHorseComponents", src, MyHorse_entity, components)
 	end)
 end)
@@ -29,11 +28,11 @@ RegisterNetEvent("qr-stable:CheckSelectedHorse", function()
 	local Player = QRCore.Functions.GetPlayer(src)
 	local Playercid = Player.PlayerData.citizenid
 
-	MySQL.Async.fetchAll('SELECT * FROM horses WHERE `cid`=@cid;', {cid = Playercid}, function(horses)
+	MySQL.Async.fetchAll('SELECT * FROM horses WHERE `citizenid`=@citizenid;', {citizenid = Playercid}, function(horses)
 		if #horses ~= 0 then
 			for i = 1, #horses do
 				if horses[i].selected == 1 then
-					TriggerClientEvent("VP:HORSE:SetHorseInfo", src, horses[i].model, horses[i].name, horses[i].components)
+					TriggerClientEvent("qr-stable:SetHorseInfo", src, horses[i].id, horses[i].citizenid, horses[i].model, horses[i].name, horses[i].components)
 				end
 			end
 		end
@@ -46,14 +45,14 @@ RegisterNetEvent("qr-stable:AskForMyHorses", function()
 	local components = nil
 	local Player = QRCore.Functions.GetPlayer(src)
 	local Playercid = Player.PlayerData.citizenid
-	MySQL.Async.fetchAll('SELECT * FROM horses WHERE `cid`=@cid;', {cid = Playercid}, function(horses)
+	MySQL.Async.fetchAll('SELECT * FROM horses WHERE `citizenid`=@citizenid;', {citizenid = Playercid}, function(horses)
 		if horses[1]then
 			horseId = horses[1].id
 		else
 			horseId = nil
 		end
 
-		MySQL.Async.fetchAll('SELECT * FROM horses WHERE `cid`=@cid;', {cid = Playercid}, function(components)
+		MySQL.Async.fetchAll('SELECT * FROM horses WHERE `citizenid`=@citizenid;', {citizenid = Playercid}, function(components)
 			if components[1] then
 				components = components[1].components
 			end
@@ -67,9 +66,11 @@ RegisterNetEvent("qr-stable:BuyHorse", function(data, name)
 	local Player = QRCore.Functions.GetPlayer(src)
 	local Playercid = Player.PlayerData.citizenid
 
-	MySQL.Async.fetchAll('SELECT * FROM horses WHERE `cid`=@cid;', {cid = Playercid}, function(horses)
+	MySQL.Async.fetchAll('SELECT * FROM horses WHERE `citizenid`=@citizenid;', {citizenid = Playercid}, function(horses)
 		if #horses >= 3 then
-			TriggerClientEvent('QRCore:Notify', src, 9, "You can have a maximum of 3 horses!", 5000, 0, 'mp_lobby_textures', 'cross', 'COLOR_WHITE')
+			TriggerClientEvent('qr-core:client:DrawText', src, 'you can have a maximum of 3 horses!', 'left')
+			Wait(5000) -- display text for 5 seconds
+			TriggerClientEvent('qr-core:client:HideText', src)
 			return
 		end
 		Wait(200)
@@ -77,20 +78,30 @@ RegisterNetEvent("qr-stable:BuyHorse", function(data, name)
 			local currentBank = Player.Functions.GetMoney('bank')
 			if data.Gold <= currentBank then
 				local bank = Player.Functions.RemoveMoney("bank", data.Gold, "stable-bought-horse")
-				TriggerEvent('qr-log:server:CreateLog', 'shops', 'Stable', 'green', "**"..GetPlayerName(Player.PlayerData.source) .. " (citizenid: "..Player.PlayerData.citizenid.." | id: "..Player.PlayerData.source..")** bought a horse for $"..data.Gold..".")
+				TriggerClientEvent('qr-core:client:DrawText', src, 'horse purchased for $'..data.Gold, 'left')
+				Wait(5000) -- display text for 5 seconds
+				TriggerClientEvent('qr-core:client:HideText', src)
+				TriggerEvent('qbr-log:server:CreateLog', 'shops', 'Stable', 'green', "**"..GetPlayerName(Player.PlayerData.source) .. " (citizenid: "..Player.PlayerData.citizenid.." | id: "..Player.PlayerData.source..")** bought a horse for $"..data.Gold..".")
 			else
-				print('not enough money')
+				TriggerClientEvent('qr-core:client:DrawText', src, 'not enough money!', 'left')
+				Wait(5000) -- display text for 5 seconds
+				TriggerClientEvent('qr-core:client:HideText', src)
 				return
 			end
 		else
 			if Player.Functions.RemoveMoney("cash", data.Dollar, "stable-bought-horse") then
-				TriggerEvent('qr-log:server:CreateLog', 'shops', 'Stable', 'green', "**"..GetPlayerName(Player.PlayerData.source) .. " (citizenid: "..Player.PlayerData.citizenid.." | id: "..Player.PlayerData.source..")** bought a horse for $"..data.Dollar..".")
+				TriggerClientEvent('qr-core:client:DrawText', src, 'horse purchased for $'..data.Dollar, 'left')
+				Wait(5000) -- display text for 5 seconds
+				TriggerClientEvent('qr-core:client:HideText', src)
+				TriggerEvent('qbr-log:server:CreateLog', 'shops', 'Stable', 'green', "**"..GetPlayerName(Player.PlayerData.source) .. " (citizenid: "..Player.PlayerData.citizenid.." | id: "..Player.PlayerData.source..")** bought a horse for $"..data.Dollar..".")
 			else
-				print('not enough money')
+				TriggerClientEvent('qr-core:client:DrawText', src, 'not enough money!', 'left')
+				Wait(5000) -- display text for 5 seconds
+				TriggerClientEvent('qr-core:client:HideText', src)
 				return
 			end
 		end
-	MySQL.Async.execute('INSERT INTO horses (`cid`, `name`, `model`) VALUES (@Playercid, @name, @model);',
+	MySQL.Async.execute('INSERT INTO horses (`citizenid`, `name`, `model`) VALUES (@Playercid, @name, @model);',
 		{
 			Playercid = Playercid,
 			name = tostring(name),
@@ -105,17 +116,17 @@ RegisterNetEvent("qr-stable:SelectHorseWithId", function(id)
 	local src = source
 	local Player = QRCore.Functions.GetPlayer(src)
 	local Playercid = Player.PlayerData.citizenid
-	MySQL.Async.fetchAll('SELECT * FROM horses WHERE `cid`=@cid;', {cid = Playercid}, function(horse)
+	MySQL.Async.fetchAll('SELECT * FROM horses WHERE `citizenid`=@citizenid;', {citizenid = Playercid}, function(horse)
 		for i = 1, #horse do
 			local horseID = horse[i].id
-			MySQL.Async.execute("UPDATE horses SET `selected`='0' WHERE `cid`=@cid AND `id`=@id", {cid = Playercid,  id = horseID}, function(done)
+			MySQL.Async.execute("UPDATE horses SET `selected`='0' WHERE `citizenid`=@citizenid AND `id`=@id", {citizenid = Playercid,  id = horseID}, function(done)
 			end)
 
 			Wait(300)
 
 			if horse[i].id == id then
-				MySQL.Async.execute("UPDATE horses SET `selected`='1' WHERE `cid`=@cid AND `id`=@id", {cid = Playercid, id = id}, function(done)
-					TriggerClientEvent("VP:HORSE:SetHorseInfo", src, horse[i].model, horse[i].name, horse[i].components)
+				MySQL.Async.execute("UPDATE horses SET `selected`='1' WHERE `citizenid`=@citizenid AND `id`=@id", {citizenid = Playercid, id = id}, function(done)
+					TriggerClientEvent("qr-stable:SetHorseInfo", src, horse[i].model, horse[i].name, horse[i].components)
 				end)
 			end
 		end
@@ -127,12 +138,12 @@ RegisterNetEvent("qr-stable:SellHorseWithId", function(id)
 	local src = source
 	local Player = QRCore.Functions.GetPlayer(src)
 	local Playercid = Player.PlayerData.citizenid
-	MySQL.Async.fetchAll('SELECT * FROM horses WHERE `cid`=@cid;', {cid = Playercid}, function(horses)
+	MySQL.Async.fetchAll('SELECT * FROM horses WHERE `citizenid`=@citizenid;', {citizenid = Playercid}, function(horses)
 
 		for i = 1, #horses do
 		   if tonumber(horses[i].id) == tonumber(id) then
 				modelHorse = horses[i].model
-				MySQL.Async.fetchAll('DELETE FROM horses WHERE `cid`=@cid AND`id`=@id;', {cid = Playercid,  id = id}, function(result)
+				MySQL.Async.fetchAll('DELETE FROM horses WHERE `citizenid`=@citizenid AND`id`=@id;', {citizenid = Playercid,  id = id}, function(result)
 				end)
 			end
 		end
@@ -143,10 +154,31 @@ RegisterNetEvent("qr-stable:SellHorseWithId", function(id)
 					if models == modelHorse then
 						local price = tonumber(values[3]/2)
 						Player.Functions.AddMoney("cash", price, "stable-sell-horse")
-						TriggerEvent('qr-log:server:CreateLog', 'shops', 'Stable', 'red', "**"..GetPlayerName(Player.PlayerData.source) .. " (citizenid: "..Player.PlayerData.citizenid.." | id: "..Player.PlayerData.source..")** sold a horse for $"..price..".")
+						TriggerEvent('qbr-log:server:CreateLog', 'shops', 'Stable', 'red', "**"..GetPlayerName(Player.PlayerData.source) .. " (citizenid: "..Player.PlayerData.citizenid.." | id: "..Player.PlayerData.source..")** sold a horse for $"..price..".")
 					end
 				end
 			end
 		end
 	end)
+end)
+
+-- feed horse
+QRCore.Functions.CreateUseableItem("carrot", function(source, item)
+    local Player = QRCore.Functions.GetPlayer(source)
+	if Player.Functions.RemoveItem(item.name, 1, item.slot) then
+        TriggerClientEvent("qr-stable:client:feedhorse", source, item.name, 25)
+    end
+end)
+
+QRCore.Functions.CreateUseableItem("sugar", function(source, item)
+    local Player = QRCore.Functions.GetPlayer(source)
+	if Player.Functions.RemoveItem(item.name, 1, item.slot) then
+        TriggerClientEvent("qr-stable:client:feedhorse", source, item.name, 50)
+    end
+end)
+
+-- brush horse
+QRCore.Functions.CreateUseableItem("horsebrush", function(source, item)
+    local Player = QRCore.Functions.GetPlayer(source)
+	TriggerClientEvent("qr-stable:client:brushhorse", source, item.name)
 end)

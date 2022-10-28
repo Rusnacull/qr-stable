@@ -1,6 +1,5 @@
+local QRCore = exports['qr-core']:GetCoreObject()
 -- Variables
-
-
 cam = nil
 hided = false
 spawnedCamera = nil
@@ -36,6 +35,7 @@ local CamPos = {}
 local SpawnplayerHorse = 0
 local horseModel
 local horseName
+local horseDBID
 local horseComponents = {}
 local initializing = false
 local alreadySentShopData = false
@@ -67,8 +67,10 @@ cameraUsing = {
 
 -- Functions
 
-local function SetHorseInfo(horse_model, horse_name, horse_components)
-    horseModel = horse_model
+local function SetHorseInfo(horse_id, horse_cid, horse_model, horse_name, horse_components)
+    horseDBID = horse_id
+	horseID = horse_cid
+	horseModel = horse_model
     horseName = horse_name
     horseComponents = horse_components
 end
@@ -123,7 +125,6 @@ local function OpenStable()
     else
         createCamera(PlayerPedId())
     end
-    --  SetEntityVisible(PlayerPedId(), false)
     if not alreadySentShopData then
         SendNUIMessage(
             {
@@ -216,7 +217,7 @@ local function InitiateHorse(atCoords)
     initializing = true
 
     if horseModel == nil and horseName == nil then
-        TriggerServerEvent("VP:HORSE:RequestMyHorseInfo")
+        TriggerServerEvent("qr-stable:RequestMyHorseInfo")
 
         local timeoutatgametimer = GetGameTimer() + (3 * 1000)
 
@@ -225,9 +226,7 @@ local function InitiateHorse(atCoords)
         end
 
         if horseModel == nil and horseName == nil then
-            --horseModel = "A_C_Horse_MP_Mangy_Backup"
-            --horseName = "Pangaré"
-            --horseComponents = nil
+			QRCore.Functions.Notify('you don\'t have a horse yet!', 'error')
         end
     end
 
@@ -293,7 +292,7 @@ local function InitiateHorse(atCoords)
     SetPedConfigFlag(entity, 400, true)
     SetPedConfigFlag(entity, 297, true)
     SetPedConfigFlag(entity, 136, false)
-    SetPedConfigFlag(entity, 312, false)
+    SetPedConfigFlag(entity, 312, true)
     SetPedConfigFlag(entity, 113, false)
     SetPedConfigFlag(entity, 301, false)
     SetPedConfigFlag(entity, 277, true)
@@ -306,7 +305,8 @@ local function InitiateHorse(atCoords)
     Citizen.InvokeNative(0x283978A15512B2FE, entity, true)
     SpawnplayerHorse = entity
     Citizen.InvokeNative(0x283978A15512B2FE, entity, true)
-    -- SetVehicleHasBeenOwnedByPlayer(playerHorse, true)
+	Citizen.InvokeNative(0xE6D4E435B56D5BD0, PlayerId(), SpawnplayerHorse)
+	Citizen.InvokeNative(0xD3A7B003ED343FD9, SpawnplayerHorse, 0x635E387C, true, true, true) -- add horse lantern
     SetPedNameDebug(entity, horseName)
     SetPedPromptName(entity, horseName)
     --CreatePrompts(PromptGetGroupIdForTargetEntity(entity))
@@ -662,6 +662,7 @@ RegisterNUICallback("CloseStable", function()
 
 	DestroyAllCams(true)
 	showroomHorse_entity = nil
+	alreadySentShopData = false
 	CloseStable()
 end)
 
@@ -695,7 +696,7 @@ AddEventHandler("onResourceStop", function(resourceName)
 	end
 end)
 
-RegisterNetEvent("VP:HORSE:SetHorseInfo", SetHorseInfo)
+RegisterNetEvent("qr-stable:SetHorseInfo", SetHorseInfo)
 
 RegisterNetEvent('qr-stable:client:UpdadeHorseComponents', function(horseEntity, components)
     for _, value in pairs(components) do
@@ -789,15 +790,20 @@ end)
 CreateThread(function()
     while true do
         Wait(1)
-        if Citizen.InvokeNative(0x91AEF906BCA88877, 0, 0x24978A28) then -- Control =  H
+        if Citizen.InvokeNative(0x91AEF906BCA88877, 0, QRCore.Shared.Keybinds['H']) then -- call horse
 			WhistleHorse()
 			Wait(10000) --Flood Protection? i think yes zoot
         end
 
-        if Citizen.InvokeNative(0x91AEF906BCA88877, 0, 0x4216AF06) then -- Control = Horse Flee
-         --   local horseCheck = Citizen.InvokeNative(0x7912F7FC4F6264B6, PlayerPedId(), myHorse[4])
+        if Citizen.InvokeNative(0x91AEF906BCA88877, 0, QRCore.Shared.Keybinds['HorseCommandFlee']) then -- flee horse
 			if SpawnplayerHorse ~= 0 then
 				fleeHorse(SpawnplayerHorse)
+			end
+		end
+		
+		if Citizen.InvokeNative(0x91AEF906BCA88877, 0, QRCore.Shared.Keybinds['B']) then -- horse inventory
+			if SpawnplayerHorse ~= 0 then
+				InvHorse(SpawnplayerHorse)
 			end
 		end
     end
@@ -827,4 +833,53 @@ CreateThread(function()
 		end
 		adding = false
 	end
+end)
+
+-- trigger horse inventory
+function InvHorse()
+    if SpawnplayerHorse ~= 0 then
+		local pcoords = GetEntityCoords(PlayerPedId())
+		local hcoords = GetEntityCoords(SpawnplayerHorse)
+		if #(pcoords - hcoords) <= 1.7 then
+			TriggerEvent('qr-stable:client:horseinventory')
+		else
+			print("you are NOT in distance to open inventory")
+		end 
+    else
+		print("you do not have a horse active")
+    end
+end
+
+-- horse inventory
+RegisterNetEvent('qr-stable:client:horseinventory', function()
+	local horsestash = horseName..horseDBID..horseID
+    TriggerServerEvent("inventory:server:OpenInventory", "stash", horsestash, { maxweight = Config.HorseInvWeight, slots = Config.HorseInvSlots, })
+    TriggerEvent("inventory:client:SetCurrentStash", horsestash)
+end)
+
+-- feed horse
+RegisterNetEvent('qr-stable:client:feedhorse')
+AddEventHandler('qr-stable:client:feedhorse', function(itemName, increase)
+    Citizen.InvokeNative(0xCD181A959CFDD7F4, PlayerPedId(), SpawnplayerHorse, -224471938, 0, 0) -- TaskAnimalInteraction
+    Wait(5000)
+    PlaySoundFrontend("Core_Fill_Up", "Consumption_Sounds", true, 0)
+    local Health = GetAttributeCoreValue(SpawnplayerHorse, 0)
+    local newHealth = Health + increase
+    local Stamina = GetAttributeCoreValue(SpawnplayerHorse, 0)
+    local newStamina = Stamina + increase
+    Citizen.InvokeNative(0xC6258F41D86676E0, SpawnplayerHorse, 0, newHealth) --core
+    Citizen.InvokeNative(0xC6258F41D86676E0, SpawnplayerHorse, 1, newStamina) --core
+end)
+
+-- brush horse
+RegisterNetEvent('qr-stable:client:brushhorse')
+AddEventHandler('qr-stable:client:brushhorse', function(itemName)
+    Citizen.InvokeNative(0xCD181A959CFDD7F4, PlayerPedId(), SpawnplayerHorse, GetHashKey("INTERACTION_BRUSH"), 0, 0)
+	Wait(8000)
+	Citizen.InvokeNative(0xE3144B932DFDFF65, SpawnplayerHorse, 0.0, -1, 1, 1)
+	ClearPedEnvDirt(SpawnplayerHorse)
+	ClearPedDamageDecalByZone(SpawnplayerHorse, 10, "ALL")
+	ClearPedBloodDamage(SpawnplayerHorse)
+	Citizen.InvokeNative(0xD8544F6260F5F01E, SpawnplayerHorse, 10)
+	QRCore.Functions.Notify('nice and clean', 'success')
 end)
