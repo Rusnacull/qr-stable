@@ -186,14 +186,6 @@ end
 
 local function CloseStable()
 	local dados = {
-		-- ['saddles'] = SaddlesUsing,
-		-- ['saddlescloths'] = SaddleclothsUsing,
-		-- ['stirrups'] = StirrupsUsing,
-		-- ['bags'] = BagsUsing,
-		-- ['manes'] = ManesUsing,
-		-- ['horsetails'] = HorseTailsUsing,
-		-- ['acshorn'] = AcsHornUsing,
-		-- ['ascluggage'] = AcsLuggageUsing
 		SaddlesUsing,
 		SaddleclothsUsing,
 		StirrupsUsing,
@@ -304,8 +296,8 @@ local function InitiateHorse(atCoords)
     TaskAnimalUnalerted(entity, -1, false, 0, 0)
     Citizen.InvokeNative(0x283978A15512B2FE, entity, true)
     SpawnplayerHorse = entity
-    Citizen.InvokeNative(0x283978A15512B2FE, entity, true)
-	Citizen.InvokeNative(0xE6D4E435B56D5BD0, PlayerId(), SpawnplayerHorse)
+    Citizen.InvokeNative(0x283978A15512B2FE, entity, true) 
+	-- Citizen.InvokeNative(0xE6D4E435B56D5BD0, PlayerId(), SpawnplayerHorse) --SetPlayerOwnsMount
 	Citizen.InvokeNative(0xD3A7B003ED343FD9, SpawnplayerHorse, 0x635E387C, true, true, true) -- add horse lantern
     SetPedNameDebug(entity, horseName)
     SetPedPromptName(entity, horseName)
@@ -382,7 +374,6 @@ local function interpCamera(cameraName, entity)
 end
 
 --NUI Callbacks
-
 RegisterNUICallback("rotate", function(data, cb)
 	if (data["key"] == "left") then
 		rotation(20)
@@ -538,7 +529,6 @@ RegisterNUICallback("sellHorse", function(data)
 	TriggerServerEvent("qr-stable:AskForMyHorses")
 	alreadySentShopData = false
 	Wait(300)
-
 	SendNUIMessage(
 		{
 			action = "show",
@@ -546,12 +536,10 @@ RegisterNUICallback("sellHorse", function(data)
 		}
 	)
 	TriggerServerEvent("qr-stable:AskForMyHorses")
-
 end)
 
 RegisterNUICallback("loadHorse", function(data)
 	local horseModel = data.horseModel
-
 	if showroomHorse_model == horseModel then
 		return
 	end
@@ -562,7 +550,6 @@ RegisterNUICallback("loadHorse", function(data)
 	end
 
 	local modelHash = GetHashKey(horseModel)
-
 	if IsModelValid(modelHash) then
 		if not HasModelLoaded(modelHash) then
 			RequestModel(modelHash)
@@ -583,7 +570,6 @@ RegisterNUICallback("loadHorse", function(data)
 	Citizen.InvokeNative(0x58A850EAEE20FAA3, showroomHorse_entity)
 	NetworkSetEntityInvisibleToNetwork(showroomHorse_entity, true)
 	SetVehicleHasBeenOwnedByPlayer(showroomHorse_entity, true)
-	-- SetModelAsNoLongerNeeded(modelHash)
 	interpCamera("Horse", showroomHorse_entity)
 end)
 
@@ -631,9 +617,6 @@ RegisterNUICallback("loadMyHorse", function(data)
 			Citizen.InvokeNative(0xD3A7B003ED343FD9, MyHorse_entity, tonumber(Key), true, true, true)
 		end
 	end
-
-	-- SetModelAsNoLongerNeeded(modelHash)
-
 	interpCamera("Horse", MyHorse_entity)
 end)
 
@@ -649,17 +632,13 @@ RegisterNUICallback("CloseStable", function()
 		}
 	)
 	SetEntityVisible(PlayerPedId(), true)
-
 	showroomHorse_model = nil
-
 	if showroomHorse_entity ~= nil then
 		DeleteEntity(showroomHorse_entity)
 	end
-
 	if MyHorse_entity ~= nil then
 		DeleteEntity(MyHorse_entity)
 	end
-
 	DestroyAllCams(true)
 	showroomHorse_entity = nil
 	alreadySentShopData = false
@@ -713,7 +692,6 @@ RegisterNetEvent("qr-stable:ReceiveHorsesData", function(dataHorses)
 end)
 
 -- Threads
-
 CreateThread(function()
 	while true do
 		Wait(1)
