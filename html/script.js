@@ -66,7 +66,7 @@ window.addEventListener('message', function(event) {
                                 Modelhorse = $(this).attr('id');                       
                                 $(this).addClass('selected');
             
-                                $.post('http://qr-stable/loadHorse', JSON.stringify({ horseModel: $(this).attr('id') }));
+                                $.post('https://qr-stable/loadHorse', JSON.stringify({ horseModel: $(this).attr('id') }));
                             });                       
                             
                         }, function() {});
