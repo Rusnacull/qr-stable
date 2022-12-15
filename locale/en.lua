@@ -1,7 +1,7 @@
 local Translations = {
     stable  = {
-        stable = "Stable",
-        set_name = "Name your horse:",
+        stable = "Grajd",
+        set_name = "Pune nume la Cal:",
     }
 }
 
